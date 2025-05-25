@@ -1,4 +1,4 @@
 package com.example.celureparoapp.Repository
 
-class CelularesRepository {
+class VentasRepository {
 }
