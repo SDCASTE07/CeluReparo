@@ -1,3 +1,4 @@
+// MainActivity.kt
 package com.example.celureparoapp
 
 import android.os.Bundle
@@ -7,7 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.navigation.compose.rememberNavController
-import com.example.celureparoapp.Navegation.AppNavHost
+import com.example.celureparoapp.utils.navigation.AppNavigation  // Cambiado a navigation (minúscula)
 import com.example.celureparoapp.ui.theme.CeluReparoAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
             CeluReparoAppTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
-                    AppNavHost(navController = navController)
+                    AppNavigation(navController = navController)
                 }
             }
         }

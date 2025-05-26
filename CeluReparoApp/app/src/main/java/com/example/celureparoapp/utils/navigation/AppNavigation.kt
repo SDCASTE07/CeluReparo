@@ -1,95 +1,98 @@
-package com.example.communitysecureapp.utils.navigation
+package com.example.celureparoapp.utils.navigation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.communitysecureapp.screen.HomeScreen
-import com.example.communitysecureapp.screen.LoginScreen
-import com.example.communitysecureapp.screen.MapSelectorScreen
-import com.example.communitysecureapp.screen.MyReportsScreen
-import com.example.communitysecureapp.screen.RegisterScreen
-import com.example.communitysecureapp.screen.ReportDetailScreen
-import com.example.communitysecureapp.viewmodel.LoginViewModel
-import com.example.communitysecureapp.viewmodel.MapDataViewModel
-import com.example.communitysecureapp.viewmodel.RegisterViewModel
-import org.osmdroid.util.GeoPoint
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.celureparoapp.screens.CelularesListScreen
+import com.example.celureparoapp.Screens.CelularDetailScreen
+import com.example.celureparoapp.screens.VentasListScreen
+import com.example.celureparoapp.screens.RepuestosListScreen
+import com.example.celureparoapp.ViewModel.CelularesViewModel
+import com.example.celureparoapp.ViewModel.CelularDetailViewModel
+import com.example.celureparoapp.viewmodels.VentasViewModel
+import com.example.celureparoapp.viewmodels.RepuestosViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
+object Routes {
+    // Rutas principales con documentación
+    const val CELULARES_LIST = "celulares"
+    const val CELULAR_DETAIL = "celulares/{id}"
+    const val VENTAS_LIST = "ventas"
+    const val REPUESTOS_LIST = "repuestos"
+
+    /**
+     * Genera la ruta para el detalle de un celular
+     * @param id ID del celular
+     */
+    fun celularDetail(id: Int): String = "celulares/$id"
+}
+
 @Composable
-fun AppNavigation(navController: NavHostController, isLogged: Boolean) {
-
-    val startDestination = if (isLogged) Home else Login
-
-    NavHost(navController = navController, startDestination = startDestination) {
-        composable<Login> {
-            val loginViewModel: LoginViewModel = hiltViewModel()
-            LoginScreen(
-                navController = navController,
-                viewModel = loginViewModel
+fun AppNavigation(
+    navController: NavHostController,
+    startDestination: String = Routes.CELULARES_LIST
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        // Lista de Celulares
+        composable(Routes.CELULARES_LIST) {
+            val viewModel: CelularesViewModel = hiltViewModel()
+            CelularesListScreen(
+                onItemClick = { id ->
+                    navController.navigate(Routes.celularDetail(id))
+                },
+                onNavigateToVentas = {
+                    navController.navigate(Routes.VENTAS_LIST)
+                },
+                onNavigateToRepuestos = {
+                    navController.navigate(Routes.REPUESTOS_LIST)
+                },
+                viewModel = viewModel
             )
         }
 
-        composable<Register> {
-            val registerViewModel: RegisterViewModel = hiltViewModel()
-            RegisterScreen(
-                navController = navController,
-                viewModel = registerViewModel
-            )
-        }
-
-        composable<Home> {
-            HomeScreen(
-                navController = navController
-            )
-        }
-
-        composable<MyReports> {
-            val mapDataViewModel: MapDataViewModel = hiltViewModel()
-            MyReportsScreen(
-                navController = navController,
-                viewModel = mapDataViewModel
-            )
-        }
-
+        // Detalle de Celular
         composable(
-            route = "map_selector?lat={lat}&lon={lon}",
+            route = Routes.CELULAR_DETAIL,
             arguments = listOf(
-                navArgument("lat") { type = NavType.StringType; nullable = true },
-                navArgument("lon") { type = NavType.StringType; nullable = true }
+                navArgument("id") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
             )
         ) { backStackEntry ->
-            val latString = backStackEntry.arguments?.getString("lat")
-            val lonString = backStackEntry.arguments?.getString("lon")
-            val initialGeoPoint = if (latString != null && lonString != null) {
-                try {
-                    GeoPoint(latString.toDouble(), lonString.toDouble())
-                } catch (e: NumberFormatException) {
-                    null
-                }
-            } else {
-                null
-            }
+            val viewModel: CelularDetailViewModel = hiltViewModel()
+            val celularId = backStackEntry.arguments?.getInt("id") ?: 0
 
-            MapSelectorScreen(
-                navController = navController,
-                initialLocation = initialGeoPoint
+            CelularDetailScreen(
+                celularId = celularId,
+                onBack = { navController.popBackStack() },
+                onEditSuccess = { navController.popBackStack() },
+                viewModel = viewModel
             )
         }
 
-        composable(
-            route = "reportDetail/{reportId}",
-            arguments = listOf(
-                navArgument("reportId") { type = NavType.StringType }
+        // Lista de Ventas
+        composable(Routes.VENTAS_LIST) {
+            val viewModel: VentasViewModel = hiltViewModel()
+            VentasListScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = viewModel
             )
-        ) {
-            val reportId = it.arguments?.getString("reportId")
-            ReportDetailScreen(reportId = reportId ?: "", navController = navController)
+        }
+
+        // Lista de Repuestos
+        composable(Routes.REPUESTOS_LIST) {
+            val viewModel: RepuestosViewModel = hiltViewModel()
+            RepuestosListScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = viewModel
+            )
         }
     }
 }
